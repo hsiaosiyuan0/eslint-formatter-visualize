@@ -13,7 +13,7 @@ You could also click the sections in the chart to view the error locations, clic
 ## Install
 
 ```bash
-npm install --save-dev eslint-formatter-overview
+npm install --save-dev eslint-formatter-visualize
 ```
 
 ## Usage
