@@ -1,8 +1,10 @@
 # eslint-formatter-visualize
 
 Easy to visualize and locate to your ESLint errors.
-
-<img src="screenshots.png" width="500" />
+  
+<p align="center">
+  <img src="screenshots.png" width="700" />
+</p>
 
 ## Install
 
