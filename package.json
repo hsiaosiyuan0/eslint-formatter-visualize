@@ -1,7 +1,11 @@
 {
   "name": "eslint-formatter-visualize",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Easy to visualize and locate to your ESLint errors.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hsiaosiyuan0/eslint-formatter-visualize.git"
+  },
   "homepage": "https://github.com/hsiaosiyuan0/eslint-formatter-visualize",
   "bugs": {
     "url": "https://github.com/hsiaosiyuan0/eslint-formatter-visualize/issues"
