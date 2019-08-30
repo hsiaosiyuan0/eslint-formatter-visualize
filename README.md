@@ -6,6 +6,10 @@ Easy to visualize and locate to your ESLint errors.
   <img src="screenshots.png" width="700" />
 </p>
 
+This formatter will collects the ESLint errors and display a chart in a browser tab, the tab will be opened in you favorite browser after the analysis is completed. 
+
+You could also click the sections in the chart to view the error locations, click those locations will automatically open them in VSCode.
+
 ## Install
 
 ```bash
