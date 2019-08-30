@@ -1,0 +1,22 @@
+{
+  "name": "eslint-formatter-visualize",
+  "version": "0.0.1",
+  "description": "Easy to visualize and locate to your ESLint errors.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "formatter",
+    "eslint",
+    "visualize"
+  ],
+  "author": "hsiaosiyuan0@outlook.com",
+  "license": "MIT",
+  "dependencies": {
+    "handlebars": "^4.1.2",
+    "js-base64": "^2.5.1",
+    "open": "^6.4.0",
+    "tmp-promise": "^2.0.2"
+  }
+}

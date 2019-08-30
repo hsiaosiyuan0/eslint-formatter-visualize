@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>eslint-overview</title>
+  <style type="text/css">
+    * {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    #overview {
+      width: 1000px;
+      height: 700px;
+      margin: 30px auto;
+    }
+
+    #err-panel .inner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow: auto;
+      background: #fff;
+      box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.27);
+    }
+
+    .vs-link {
+      display: block;
+      font-size: 13px;
+      padding: 5px 0;
+      border-bottom: 1px solid #ddd;
+      text-decoration: none;
+      color: #0072be;
+    }
+
+    .vs-link:hover {
+      background: #0072be;
+      color: #fff;
+    }
+
+    #err-panel .links {
+      padding: 0 10px 10px 10px;
+    }
+
+    #err-panel header {
+      padding: 10px;
+      position: fixed;
+      background-color: #fff;
+      box-sizing: border-box;
+      box-shadow: 0px 0px 3px 0px rgba(0, 0, 0, 0.75);
+    }
+
+    .rule-link {
+      font-size: 18px;
+      color: rgb(57, 135, 242);
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="overview"></div>
+  <div id="err-panel">
+    <div class="inner" v-show="show" style="display: none">
+      <header>
+        <table>
+          <tr>
+            <td>Rule:</td>
+            <td><a class="rule-link" :href="link" target="_blank">\{{ id }}</a></td>
+          </tr>
+          <tr>
+            <td>Errors:</td>
+            <td>\{{ count }}</td>
+          </tr>
+          <tr>
+            <td>Files:</td>
+            <td>\{{ fileCount }}</td>
+          </tr>
+        </table>
+      </header>
+      <div class="links">
+        <a class="vs-link" v-for="place in places" :href="place.vsLink">\{{ place.loc }}</a>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts.min.js"></script>
+  <script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
+  <script type="text/javascript">
+    const results = JSON.parse(atob('{{{ data }}}'));
+
+    const errRules = {};
+    let totalErrNum = 0;
+    function makeOverviewData(data) {
+      data.forEach(r => r.messages.forEach(m => {
+        totalErrNum++;
+        let rule = errRules[m.ruleId];
+        if (rule === undefined) {
+          const id = m.ruleId;
+          const link = id.indexOf('/') === -1 ? 'https://eslint.org/docs/rules/' + id : 'https://www.google.com/search?q=' + id
+          rule = { count: 0, places: [], id, link, files: new Set() };
+          errRules[m.ruleId] = rule;
+        }
+        rule.files.add(r.filePath);
+        rule.count++;
+        const loc = `${r.filePath}:${m.line}:${m.column}`;
+        rule.places.push({
+          severity: m.severity,
+          line: m.line,
+          column: m.column,
+          loc,
+          vsLink: `vscode://file/${loc}`
+        })
+      }))
+      const legendData = Object.keys(errRules).sort((a, b) => errRules[b].count - errRules[a].count);
+      const seriesData = legendData.map(l => ({ name: l, value: errRules[l].count }));
+      const selected = {};
+      legendData.reduce((p, e, i) => {
+        p[e] = i < 15;
+        return p;
+      }, selected);
+      return { legendData, seriesData, selected }
+    }
+
+    function renderOverview(data) {
+      var overviewChart = echarts.init(document.getElementById("overview"));
+
+      var option = {
+        title: {
+          text: 'ESLint Results',
+          subtext: 'Total: ' + totalErrNum,
+          x: 'center'
+        },
+        tooltip: {
+          trigger: 'item',
+          formatter: "{a} <br/>{b} : {c} ({d}%)"
+        },
+        legend: {
+          type: 'scroll',
+          orient: 'vertical',
+          right: 0,
+          top: 20,
+          bottom: 20,
+          data: data.legendData,
+          selected: data.selected
+        },
+        series: [
+          {
+            name: 'rule',
+            type: 'pie',
+            radius: '55%',
+            center: ['40%', '50%'],
+            data: data.seriesData,
+            itemStyle: {
+              emphasis: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              }
+            }
+          }
+        ]
+      };
+
+      overviewChart.setOption(option);
+      overviewChart.on('click', function (params) {
+        const er = errRules[params.data.name];
+        Vue.set(errPanel, 'id', er.id);
+        Vue.set(errPanel, 'link', er.link);
+        Vue.set(errPanel, 'places', er.places);
+        Vue.set(errPanel, 'count', er.count);
+        Vue.set(errPanel, 'fileCount', er.files.size);
+        Vue.set(errPanel, 'show', true);
+        setTimeout(() => {
+          const ep = document.querySelector('#err-panel .inner');
+          const el = document.querySelector('#err-panel header');
+          let rect = ep.getBoundingClientRect();
+          el.style.width = (rect.right - rect.left) + 'px';
+
+          const links = document.querySelector('#err-panel .links');
+          rect = el.getBoundingClientRect();
+          links.style.marginTop = (rect.bottom - rect.top) + 'px';
+        }, 0);
+      });
+    }
+
+    function showOverview() {
+      const data = makeOverviewData(results);
+      renderOverview(data);
+    }
+
+    showOverview();
+
+    const errPanel = new Vue({
+      el: '#err-panel',
+      data: {
+        show: false,
+        id: '',
+        link: '',
+        count: 0,
+        fileCount: 0,
+        places: []
+      },
+      methods: {
+      }
+    });
+
+    document.addEventListener('click', (evt) => {
+      const ep = document.querySelector('#err-panel .inner');
+      if (!ep.contains(evt.target) && ep !== evt.target && getComputedStyle(ep).display !== 'none') {
+        Vue.set(errPanel, 'show', false);
+      }
+    }, true);
+  </script>
+</body>
+
+</html>
